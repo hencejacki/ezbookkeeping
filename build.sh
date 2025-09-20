@@ -219,7 +219,7 @@ build_package() {
         package_file_name="$package_file_name-$(date '+%Y%m%d')"
     fi
 
-    package_file_name="ezbookkeeping-$package_file_name-$(arch).tar.gz"
+    package_file_name="ezbookkeeping-$package_file_name-$GOARCH.tar.gz"
 
     if [ -n "$PACKAGE_FILENAME" ]; then
         package_file_name="$PACKAGE_FILENAME"
