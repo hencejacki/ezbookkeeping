@@ -12,13 +12,6 @@ COMMIT_HASH=""
 BUILD_UNIXTIME=""
 PACKAGE_FILENAME=""
 DOCKER_TAG=""
-ARCH=$(arch)
-LIBC_TYPE=""
-CC="gcc"
-CXX="g++"
-AR="ar"
-LD="ld"
-STRIP="strip"
 
 echo_red() {
     printf '\033[31m%s\033[0m\n' "$1"
@@ -49,8 +42,6 @@ Types:
 
 Options:
     -r, --release           Build release (The script will use environment variable "RELEASE_BUILD" to detect whether this is release building by default)
-    -a, --arch              Specify the architecture of target platform (It will use the "arch" command to detect the host platform by default, you can also specify it, such as riscv64, x86_64, amd64, armv7)
-    -c, --ctype             The type of libc (Such as gnu, musl, newlib)
     -o, --output <filename> Package file name (For "package" type only)
     -t, --tag               Docker tag (For "docker" type only)
     --no-lint               Do not execute lint check before building
@@ -70,14 +61,6 @@ parse_args() {
         case "${1}" in
             --release | -r)
                 RELEASE="1"
-                ;;
-            --arch | -a)
-                ARCH="$2"
-                shift
-                ;;
-            --ctype | -c)
-                LIBC_TYPE="$2"
-                shift
                 ;;
             --output | -o)
                 PACKAGE_FILENAME="$2"
@@ -117,46 +100,6 @@ parse_args() {
     fi
 }
 
-setup_cross_compile() {
-	C_COMPILER_PREFIX=""
-	case "$ARCH" in
-        riscv64)
-        C_COMPILER_PREFIX="riscv64-unknown-linux"
-        ;;
-        *)
-        C_COMPILER_PREFIX="gcc"
-        ;;
-	esac
-
-	if [ "$C_COMPILER_PREFIX" != "gcc" ]; then
-		case "$LIBC_TYPE" in
-			gnu)
-			CC="$C_COMPILER_PREFIX-gnu-gcc"
-			CXX="$C_COMPILER_PREFIX-gnu-g++"
-			AR="$C_COMPILER_PREFIX-gnu-ar"
-			LD="$C_COMPILER_PREFIX-gnu-ld"
-			STRIP="$C_COMPILER_PREFIX-gnu-strip"
-			;;
-			musl)
-			CC="$C_COMPILER_PREFIX-musl-gcc"
-			CXX="$C_COMPILER_PREFIX-musl-g++"
-			AR="$C_COMPILER_PREFIX-musl-ar"
-			LD="$C_COMPILER_PREFIX-musl-ld"
-			STRIP="$C_COMPILER_PREFIX-musl-strip"
-			;;
-			*)
-			CC="$C_COMPILER_PREFIX-gnu-gcc"
-			CXX="$C_COMPILER_PREFIX-gnu-g++"
-			AR="$C_COMPILER_PREFIX-gnu-ar"
-			LD="$C_COMPILER_PREFIX-gnu-ld"
-			STRIP="$C_COMPILER_PREFIX-gnu-strip"
-			;;
-		esac
-	fi
-
-	echo_red "CGO cross compile toolchain: $CC $CXX $AR $LD $STRIP"
-}
-
 check_type_dependencies() {
     if [ "$TYPE" = "" ]; then
         echo_red "Error: No specified type"
@@ -167,11 +110,11 @@ check_type_dependencies() {
     check_dependency "git"
 
     if [ "$TYPE" = "backend" ]; then
-        check_dependency "go $CC $CXX $AR $LD $STRIP"
+        check_dependency "go gcc"
     elif [ "$TYPE" = "frontend" ]; then
         check_dependency "node npm"
     elif [ "$TYPE" = "package" ]; then
-        check_dependency "go node npm tar $CC $CXX $AR $LD $STRIP"
+        check_dependency "go node npm tar gcc"
     elif [ "$TYPE" = "docker" ]; then
         check_dependency "docker"
     fi
@@ -223,7 +166,7 @@ build_backend() {
 
     echo "Building backend binary file ($RELEASE_TYPE)..."
 
-	CGO_ENABLED=1 GOARCH=$ARCH CC=$CC CXX=$CXX AR=$AR LD=$LD STRIP=$STRIP go build -a -v -trimpath -ldflags "-w -s -linkmode external -extldflags '-static' $backend_build_extra_arguments" -o ezbookkeeping ezbookkeeping.go
+	CGO_ENABLED=1 go build -a -v -trimpath -ldflags "-w -s -linkmode external -extldflags '-static' $backend_build_extra_arguments" -o ezbookkeeping ezbookkeeping.go
     chmod +x ezbookkeeping
 }
 
@@ -322,7 +265,6 @@ main() {
     fi
 
     parse_args "$@"
-	setup_cross_compile
     check_type_dependencies "$TYPE"
     set_build_parameters
 
