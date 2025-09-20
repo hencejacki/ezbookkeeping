@@ -4,6 +4,8 @@ ARG RELEASE_BUILD
 ARG BUILD_PIPELINE
 ARG CHECK_3RD_API
 ARG SKIP_TESTS
+ARG TARGETOS
+ARG TARGETARCH
 ENV RELEASE_BUILD=$RELEASE_BUILD
 ENV BUILD_PIPELINE=$BUILD_PIPELINE
 ENV CHECK_3RD_API=$CHECK_3RD_API
@@ -40,7 +42,6 @@ COPY --from=fe-builder /go/src/github.com/mayswind/ezbookkeeping/dist ./dist
 COPY conf ./conf
 COPY templates ./templates
 COPY LICENSE .
-RUN docker/frontend-build-pre-setup.sh
 RUN apk add tar bash
 RUN ./build.sh package --no-rebuild
 
