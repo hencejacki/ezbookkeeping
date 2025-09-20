@@ -8,6 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: release
     steps:
       -
         name: Checkout
@@ -36,7 +37,6 @@ jobs:
                 SKIP_TESTS=${{ vars.SKIP_TESTS }}
                 RELEASE_BUILD=${{ vars.RELEASE_BUILD }}
             push: false
-            load: false
             outputs: type=local,dest=./out,platform-split=false
       -
         name: Upload artifacts
