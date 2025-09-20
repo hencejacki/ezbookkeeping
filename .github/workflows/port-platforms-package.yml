@@ -18,9 +18,10 @@ jobs:
       -
         name: Set up buildx
         uses: docker/setup-buildx-action@v3
-        platforms: |
-            linux/amd64
-            linux/riscv64
+        with:
+          platforms: |
+              linux/amd64
+              linux/riscv64
       -
         name: Build and package
         uses: docker/build-push-action@v6
