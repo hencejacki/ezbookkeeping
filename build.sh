@@ -242,6 +242,9 @@ build_package() {
     cp -R conf package/conf
     cp -R templates package/templates
     cp LICENSE package/
+    touch package/data/.keep
+    touch package/storage/.keep
+    touch package/log/.keep
 
     cd package || { echo_red "Error: Build Failed"; exit 1; }
     tar cvzf "../$package_file_name" .
