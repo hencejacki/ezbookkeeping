@@ -37,13 +37,13 @@ jobs:
                 RELEASE_BUILD=${{ vars.RELEASE_BUILD }}
             push: false
             load: false
-            outputs: type=local,dest=.
+            outputs: type=local,dest=./out,platform-split=false
       -
         name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ezbk-packages
           path: |
-            ezbookkeeping-*.tar.gz
+            ./out/ezbookkeeping-*.tar.gz
 
 

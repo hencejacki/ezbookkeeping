@@ -43,6 +43,7 @@ COPY conf ./conf
 COPY templates ./templates
 COPY LICENSE .
 COPY build.sh .
-RUN apk add tar bash
+COPY package.json
+RUN apk add tar bash git
 RUN ./build.sh package --no-rebuild
 

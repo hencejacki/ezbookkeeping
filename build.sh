@@ -115,9 +115,7 @@ check_type_dependencies() {
         exit 2
     fi
 
-    if [ "$NO_REBUILD" = "0" ]; then
-        check_dependency "git"
-    fi
+    check_dependency "git"
 
     if [ "$TYPE" = "backend" ]; then
         check_dependency "go gcc"
@@ -221,7 +219,7 @@ build_package() {
         package_file_name="$package_file_name-$(date '+%Y%m%d')"
     fi
 
-    package_file_name="ezbookkeeping-$package_file_name-$ARCH.tar.gz"
+    package_file_name="ezbookkeeping-$package_file_name-$(arch).tar.gz"
 
     if [ -n "$PACKAGE_FILENAME" ]; then
         package_file_name="$PACKAGE_FILENAME"
