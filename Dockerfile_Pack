@@ -1,0 +1,16 @@
+# Build backend binary file
+FROM --platform=$BUILDPLATFORM golang:1.25.1-alpine3.22 AS be-builder
+ARG RELEASE_BUILD
+ARG BUILD_PIPELINE
+ARG CHECK_3RD_API
+ARG SKIP_TESTS
+ENV RELEASE_BUILD=$RELEASE_BUILD
+ENV BUILD_PIPELINE=$BUILD_PIPELINE
+ENV CHECK_3RD_API=$CHECK_3RD_API
+ENV SKIP_TESTS=$SKIP_TESTS
+WORKDIR /go/src/github.com/mayswind/ezbookkeeping
+COPY . .
+RUN docker/backend-build-pre-setup.sh
+RUN apk add git gcc g++ libc-dev
+RUN ./build.sh package
+

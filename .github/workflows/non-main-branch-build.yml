@@ -4,6 +4,7 @@ on:
   push:
     branches-ignore:
       - main
+      - port/riscv64
 
 jobs:
   build:
