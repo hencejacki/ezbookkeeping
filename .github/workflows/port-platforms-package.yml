@@ -43,6 +43,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ezbk-amd64
+          include-hidden-files: true
           path: |
             ./out/linux_amd64/go/src/github.com/mayswind/ezbookkeeping/package/
       -
@@ -50,5 +51,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ezbk-riscv64
+          include-hidden-files: true
           path: |
             ./out/linux_riscv64/go/src/github.com/mayswind/ezbookkeeping/package/
