@@ -39,10 +39,16 @@ jobs:
             push: false
             outputs: type=local,dest=./out
       -
-        name: Upload artifacts
+        name: Upload amd64 artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ezbk-packages
+          name: ezbk-amd64
           path: |
-            ./out/linux_amd64/go/src/github.com/mayswind/ezbookkeeping/ezbookkeeping-*.tar.gz
-            ./out/linux_riscv64/go/src/github.com/mayswind/ezbookkeeping/ezbookkeeping-*.tar.gz
+            ./out/linux_amd64/go/src/github.com/mayswind/ezbookkeeping/package/
+      -
+        name: Upload riscv64 artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ezbk-riscv64
+          path: |
+            ./out/linux_riscv64/go/src/github.com/mayswind/ezbookkeeping/package/
