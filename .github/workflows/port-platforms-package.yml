@@ -39,12 +39,16 @@ jobs:
             push: false
             outputs: type=local,dest=./out
       -
+        name: Debug - Check built files
+        run: |
+          echo "Checking output directory structure:"
+          find ./out -type f 2>/dev/null || echo "No files found"
+          ls -la ./out/ 2>/dev/null || echo "out directory not exists"
+      -
         name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ezbk-packages
           path: |
-            ./out/linux_amd64/ezbookkeeping-*.tar.gz
-            ./out/linux_riscv64/ezbookkeeping-*.tar.gz
-
-
+            ./out/**/*.tar.gz
+            ./out/**/*.zip
