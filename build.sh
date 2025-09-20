@@ -115,13 +115,15 @@ check_type_dependencies() {
         exit 2
     fi
 
-    check_dependency "git"
+    if [ "$NO_REBUILD" = "0" ]; then
+        check_dependency "git"
+    fi
 
     if [ "$TYPE" = "backend" ]; then
         check_dependency "go gcc"
     elif [ "$TYPE" = "frontend" ]; then
         check_dependency "node npm"
-    elif [ "$TYPE" = "package" ]; then
+    elif [ "$TYPE" = "package" && "$NO_REBUILD" = "0" ]; then
         check_dependency "go node npm tar gcc"
     elif [ "$TYPE" = "docker" ]; then
         check_dependency "docker"
