@@ -3,6 +3,7 @@
 TYPE=""
 NO_LINT="0"
 NO_TEST="0"
+NO_REBUILD="0"
 SKIP_TESTS="${SKIP_TESTS}"
 RELEASE=${RELEASE_BUILD:-"0"}
 RELEASE_TYPE="unknown"
@@ -54,6 +55,7 @@ Options:
     -t, --tag               Docker tag (For "docker" type only)
     --no-lint               Do not execute lint check before building
     --no-test               Do not execute unit testing before building (You can use environment variable "SKIP_TESTS" to skip specified tests)
+    --no-rebuild            Do not rebuild when execute package
     -h, --help              Show help
 EOF
 }
@@ -90,6 +92,9 @@ parse_args() {
                 ;;
             --no-test)
                 NO_TEST="1"
+                ;;
+            --no-rebuild)
+                NO_REBUILD="1"
                 ;;
             --help | -h)
                 show_help
@@ -271,8 +276,10 @@ build_package() {
 
     echo "Building package archive \"$package_file_name\" ($RELEASE_TYPE)..."
 
-    build_backend
-    build_frontend
+    if [ "$NO_REBUILD" = "0" ]; then
+        build_backend
+        build_frontend
+    fi
 
     rm -rf package
     mkdir package
