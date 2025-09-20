@@ -37,13 +37,14 @@ jobs:
                 SKIP_TESTS=${{ vars.SKIP_TESTS }}
                 RELEASE_BUILD=${{ vars.RELEASE_BUILD }}
             push: false
-            outputs: type=local,dest=./out,platform-split=false
+            outputs: type=local,dest=./out
       -
         name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ezbk-packages
           path: |
-            ./out/ezbookkeeping-*.tar.gz
+            ./out/linux_amd64/ezbookkeeping-*.tar.gz
+            ./out/linux_riscv64/ezbookkeeping-*.tar.gz
 
 
