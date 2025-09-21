@@ -3,6 +3,7 @@
 TYPE=""
 NO_LINT="0"
 NO_TEST="0"
+NO_REBUILD="0"
 SKIP_TESTS="${SKIP_TESTS}"
 RELEASE=${RELEASE_BUILD:-"0"}
 RELEASE_TYPE="unknown"
@@ -45,6 +46,7 @@ Options:
     -t, --tag               Docker tag (For "docker" type only)
     --no-lint               Do not execute lint check before building
     --no-test               Do not execute unit testing before building (You can use environment variable "SKIP_TESTS" to skip specified tests)
+    --no-rebuild            Do not rebuild when package
     -h, --help              Show help
 EOF
 }
@@ -60,6 +62,14 @@ parse_args() {
             --release | -r)
                 RELEASE="1"
                 ;;
+            --arch | -a)
+                ARCH="$2"
+                shift
+                ;;
+            --ctype | -c)
+                LIBC_TYPE="$2"
+                shift
+                ;;
             --output | -o)
                 PACKAGE_FILENAME="$2"
                 shift
@@ -73,6 +83,9 @@ parse_args() {
                 ;;
             --no-test)
                 NO_TEST="1"
+                ;;
+            --no-rebuild)
+                NO_REBUILD="1"
                 ;;
             --help | -h)
                 show_help
@@ -108,8 +121,8 @@ check_type_dependencies() {
         check_dependency "go gcc"
     elif [ "$TYPE" = "frontend" ]; then
         check_dependency "node npm"
-    elif [ "$TYPE" = "package" ]; then
-        check_dependency "go gcc node npm tar"
+    elif [ "$TYPE" = "package" && "$NO_REBUILD" = "0" ]; then
+        check_dependency "go node npm tar gcc"
     elif [ "$TYPE" = "docker" ]; then
         check_dependency "docker"
     fi
@@ -161,7 +174,7 @@ build_backend() {
 
     echo "Building backend binary file ($RELEASE_TYPE)..."
 
-    CGO_ENABLED=1 go build -a -v -trimpath -ldflags "-w -s -linkmode external -extldflags '-static' $backend_build_extra_arguments" -o ezbookkeeping ezbookkeeping.go
+	CGO_ENABLED=1 go build -a -v -trimpath -ldflags "-w -s -linkmode external -extldflags '-static' $backend_build_extra_arguments" -o ezbookkeeping ezbookkeeping.go
     chmod +x ezbookkeeping
 }
 
@@ -206,7 +219,7 @@ build_package() {
         package_file_name="$package_file_name-$(date '+%Y%m%d')"
     fi
 
-    package_file_name="ezbookkeeping-$package_file_name-$(arch).tar.gz"
+    package_file_name="ezbookkeeping-$package_file_name-${GOARCH}.tar.gz"
 
     if [ -n "$PACKAGE_FILENAME" ]; then
         package_file_name="$PACKAGE_FILENAME"
@@ -214,8 +227,10 @@ build_package() {
 
     echo "Building package archive \"$package_file_name\" ($RELEASE_TYPE)..."
 
-    build_backend
-    build_frontend
+    if [ "$NO_REBUILD" = "0" ]; then
+        build_backend
+        build_frontend
+    fi
 
     rm -rf package
     mkdir package
@@ -227,6 +242,9 @@ build_package() {
     cp -R conf package/conf
     cp -R templates package/templates
     cp LICENSE package/
+    touch package/data/.keep
+    touch package/storage/.keep
+    touch package/log/.keep
 
     cd package || { echo_red "Error: Build Failed"; exit 1; }
     tar cvzf "../$package_file_name" .
