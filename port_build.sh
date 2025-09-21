@@ -12,6 +12,7 @@ COMMIT_HASH=""
 BUILD_UNIXTIME=""
 PACKAGE_FILENAME=""
 DOCKER_TAG=""
+OS="linux"
 ARCH="unknown"
 
 echo_red() {
@@ -46,6 +47,7 @@ Options:
     -o, --output <filename> Package file name (For "package" type only)
     -t, --tag               Docker tag (For "docker" type only)
     -a, --arch              The target platform's architecture
+    --os                    The target platform's operating system(linux,windows,macos)
     --no-lint               Do not execute lint check before building
     --no-test               Do not execute unit testing before building (You can use environment variable "SKIP_TESTS" to skip specified tests)
     --no-rebuild            Do not rebuild when package
@@ -74,6 +76,10 @@ parse_args() {
                 ;;
             --tag | -t)
                 DOCKER_TAG="$2"
+                shift
+                ;;
+            --os)
+                OS="$2"
                 shift
                 ;;
             --no-lint)
@@ -266,7 +272,7 @@ build_docker() {
 
     echo "Building docker image \"$docker_tag\" ($RELEASE_TYPE)..."
 
-    docker build . -t "$docker_tag" --build-arg RELEASE_BUILD=$RELEASE
+    docker build . --platform "$OS/$ARCH" -t "$docker_tag" --build-arg RELEASE_BUILD=$RELEASE
 }
 
 main() {

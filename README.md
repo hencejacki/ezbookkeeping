@@ -24,7 +24,7 @@ Live Demo: [https://ezbookkeeping-demo.mayswind.net](https://ezbookkeeping-demo.
     - Docker-ready
     - Supports SQLite, MySQL, PostgreSQL
     - Cross-platform (Windows, macOS, Linux)
-    - Works on x86, amd64, ARM architectures
+    - Works on x86, amd64, ARM, riscv64 architectures
 - **User-Friendly Interface**
     - UI optimized for both mobile and desktop
     - PWA support for native-like mobile experience
@@ -102,6 +102,10 @@ You can also build a Docker image. Make sure you have [Docker](https://www.docke
 **Linux**
 
     $ ./build.sh docker
+
+**Linux/riscv64**
+
+    $ ./port_build.sh docker --os linux -a riscv64
 
 ## Contributing
 We welcome contributions of all kinds.
