@@ -1,9 +1,9 @@
-name: Port Snapshot
+name: Port Release
 
 on:
   push:
     branches:
-      - port/riscv64
+      - main
 
 jobs:
   build:
