@@ -40,8 +40,8 @@ jobs:
         run: |
           mkdir -p ezbookkeeping
           cp ezbookkeeping-riscv64 ezbookkeeping/
-          cp -R dist public/
-          cp -r conf templates public ezbookkeeping/
+          cp -R dist ezbookkeeping/public
+          cp -r conf templates ezbookkeeping/
           tar -czf ezbookkeeping-${{ github.ref_name }}-linux-riscv64.tar.gz ezbookkeeping
           rm -rf ezbookkeeping
 
