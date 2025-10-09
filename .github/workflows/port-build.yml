@@ -1,4 +1,4 @@
-name: Build for RISC-V and Other Architectures
+name: Build for RISC-V Architecture
 
 on:
   push:
@@ -6,93 +6,42 @@ on:
       - "v*.*.*"
 
 jobs:
-  build-binaries:
+  build-binary:
     runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.meta.outputs.version }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Docker meta
-        id: meta
-        uses: docker/metadata-action@v5
+      - name: Set up Go
+        uses: actions/setup-go@v4
         with:
-          images: |
-            ${{ secrets.DOCKER_USERNAME }}/ezbookkeeping
-          tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=raw,value=latest
+          go-version: '1.25'
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          image: tonistiigi/binfmt:qemu-v8.1.5
+      - name: Build for RISC-V 64
+        run: |
+          GOOS=linux GOARCH=riscv64 CGO_ENABLED=1 CC=riscv64-linux-gnu-gcc go build -ldflags "-s -w -X main.version=${GITHUB_REF_NAME#v}" -o ezbookkeeping-riscv64 ./ezbookkeeping.go
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build binaries for linux/riscv64
-        uses: docker/build-push-action@v6
-        with:
-          file: Dockerfile
-          context: .
-          platforms: linux/riscv64
-          push: false
-          build-args: |
-            RELEASE_BUILD=1
-            BUILD_PIPELINE=1
-            CHECK_3RD_API=${{ vars.CHECK_3RD_API }}
-            SKIP_TESTS=${{ vars.SKIP_TESTS }}
-          outputs: type=docker,dest=/tmp/ezbookkeeping-riscv64.tar
-
-  upload-linux-artifact:
-    needs: build-binaries
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - arch: linux/riscv64
-            arch_alias: linux-riscv64
-            tar_file: /tmp/ezbookkeeping-riscv64.tar
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-        with:
-          image: tonistiigi/binfmt:qemu-v8.1.5
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Extract packaged files for ${{ matrix.arch }}
+      - name: Package for RISC-V 64
         run: |
           mkdir -p ezbookkeeping
-          docker load --input ${{ matrix.tar_file }}
-          cid=$(docker create ezbookkeeping:latest)
-          docker cp ${cid}:/ezbookkeeping ./ezbookkeeping
-          docker rm ${cid}
-          cd ezbookkeeping
-          tar -czf ../ezbookkeeping-${{ github.ref_name }}-${{ matrix.arch_alias }}.tar.gz *
-          cd ..
+          cp ezbookkeeping-riscv64 ezbookkeeping/
+          cp -r conf templates public ezbookkeeping/
+          tar -czf ezbookkeeping-${{ github.ref_name }}-linux-riscv64.tar.gz ezbookkeeping
           rm -rf ezbookkeeping
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ezbookkeeping-${{ github.ref_name }}-${{ matrix.arch_alias }}
-          path: ezbookkeeping-${{ github.ref_name }}-${{ matrix.arch_alias }}.tar.gz
+          name: ezbookkeeping-${{ github.ref_name }}-linux-riscv64
+          path: ezbookkeeping-${{ github.ref_name }}-linux-riscv64.tar.gz
           if-no-files-found: error
 
   publish-release:
     runs-on: ubuntu-latest
     needs:
-      - upload-linux-artifact
+      - build-binary
     steps:
-      - name: Download linux-riscv64 packaged files
+      - name: Download RISC-V 64 packaged files
         uses: actions/download-artifact@v4
         with:
           name: ezbookkeeping-${{ github.ref_name }}-linux-riscv64
